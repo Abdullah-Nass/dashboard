@@ -1,0 +1,9 @@
+{
+  "todo_label": "Tarea",
+  "todo_plch": "Introduce tu tarea",
+  "loading": "Cargando...",
+  "empty_fields": "Debes escribir una tarea",
+  "todo_error": "Error al añadir tu tarea",
+  "add": "Añadir",
+  "feedback": "¡Tarea añadida con éxito!"
+}

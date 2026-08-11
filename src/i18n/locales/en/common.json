@@ -1,0 +1,11 @@
+{
+  "app_name": "Dashboard",
+  "loading": "Loading...",
+  "error": "Something went wrong",
+  "save": "Save",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "edit": "Edit",
+  "logout": "Logout",
+  "language": "Language"
+}

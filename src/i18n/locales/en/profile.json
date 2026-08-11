@@ -1,0 +1,16 @@
+{
+  "welcome": "Welcome, {{name}}",
+  "title": "Dashboard",
+  "profile": "Profile",
+  "user_error": "Error fetching user",
+  "posts": {
+    "title": "My Posts",
+    "add": "Add Post",
+    "empty": "No posts yet"
+  },
+  "todos": {
+    "title": "My Todos",
+    "add": "Add Todo",
+    "empty": "No todos yet"
+  }
+}

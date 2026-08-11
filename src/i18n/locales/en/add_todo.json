@@ -1,0 +1,10 @@
+{
+  "todo_label": "Todo",
+  "todo_plch": "Enter your todo",
+
+  "loading": "Loading...",
+  "empty_fields": "You should type a task",
+  "todo_error": "Error adding your task",
+  "add": "Add",
+  "feedback": "Todo added successfully!"
+}

@@ -1,0 +1,11 @@
+{
+  "app_name": "Tablero",
+  "loading": "Cargando...",
+  "error": "Algo salió mal",
+  "save": "Guardar",
+  "cancel": "Cancelar",
+  "delete": "Eliminar",
+  "edit": "Editar",
+  "logout": "Cerrar sesión",
+  "language": "Idioma"
+}

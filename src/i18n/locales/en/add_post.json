@@ -1,0 +1,11 @@
+{
+  "title_label": "Title",
+  "title_plch": "Enter title",
+  "body_label": "Body",
+  "body_plch": "Enter body",
+  "loading": "Loading...",
+  "empty_fields": "You should have both title and content",
+  "post_error": "Error submitting your post",
+  "post": "Post",
+  "feedback": "Post submitted successfully!"
+}

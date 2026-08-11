@@ -1,0 +1,16 @@
+{
+  "welcome": "Bienvenido, {{name}}",
+  "title": "Tablero",
+  "profile": "Perfil",
+  "user_error": "Error obteniendo usuario",
+  "posts": {
+    "title": "Mis Mensajes",
+    "add": "Añadir Post",
+    "empty": "Aún no hay mensajes"
+  },
+  "todos": {
+    "title": "Mis tareas",
+    "add": "Añadir tarea",
+    "empty": "Aún no hay tareas"
+  }
+}
