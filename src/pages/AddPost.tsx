@@ -21,6 +21,7 @@ function AddPost() {
   const { t } = useTranslation(["profile", "add_post", "auth"]);
   const context = useContext(AuthContext);
   if (!context) throw new Error("Cannot use AuthContext");
+  if (!context.user) throw new Error("User must be logged in to add a todo");
   const { user } = context;
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
