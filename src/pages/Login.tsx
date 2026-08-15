@@ -4,46 +4,58 @@ import { useNavigate, Navigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faLock, faUser } from "@fortawesome/free-solid-svg-icons";
-import Loading from "../components/Loading";
 import LanguageSwitcher from "../components/LanguageSwitcher";
 import SubmitButton from "../components/SubmitButton";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query"; // 1. Import useMutation
+const loginSchema = z.object({
+  username: z.string().min(1, "login.empty_username"),
+  password: z.string().min(1, "login.empty_password"),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
 
 function Login() {
   const { t } = useTranslation("auth");
   const context = useContext(AuthContext);
   if (!context) throw new Error("Cannot use AuthContext");
   const navigate = useNavigate();
-  const [error, setError] = useState<string>("");
-  const [username, setUsername] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
   const [seePass, setSeePass] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
   const { loginUser, isAuthenticated } = context;
+
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  });
 
   useEffect(() => {
     document.title = t("login.submit");
   }, [t]);
-  const handleLogin: React.SubmitEventHandler<HTMLFormElement> = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    if (!username || !password) {
-      setError(t("login.empty_fields"));
-      setLoading(false);
 
-      return;
-    }
-    try {
-      await loginUser(username, password);
-
-      return navigate("/");
-    } catch {
-      setError(t("login.invalid_fields"));
-    } finally {
-      setLoading(false);
-    }
+  const loginMutation = useMutation({
+    mutationFn: async (data: LoginFormData) => {
+      await loginUser(data.username.trim(), data.password.trim());
+    },
+    onSuccess: () => {
+      navigate("/");
+    },
+    onError: () => {
+      setError("root", {
+        message: t("login.invalid_fields"),
+      });
+    },
+  });
+  const onSubmit = (data: LoginFormData) => {
+    loginMutation.mutate(data);
   };
+
   if (isAuthenticated) return <Navigate to="/" />;
-  if (loading) return <Loading />;
   return (
     <>
       <div className="relative h-screen">
@@ -53,17 +65,19 @@ function Login() {
         <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
           {/* Form */}
           <div className="flex flex-col justify-center ">
-            {error && (
-              <div className="text-red-500 font-bold text-center">{error}</div>
+            {errors.root && (
+              <div className="text-red-500 font-bold text-center">
+                {errors.root.message}
+              </div>
             )}
             <div className="flex flex-col justify-center items-center gap-10 p-4">
               <div className="text-center font-semibold text-2xl ">
                 {t("login.login_title")}
               </div>
               <form
-                onSubmit={handleLogin}
                 method="POST"
                 className="flex flex-col gap-3 items-center w-72"
+                onSubmit={handleSubmit(onSubmit)}
               >
                 <div className="flex flex-col gap-4 w-full">
                   <div className="flex flex-col gap-2 ">
@@ -76,17 +90,16 @@ function Login() {
                       <input
                         type="text"
                         id="username"
-                        name="username"
-                        value={username}
-                        onChange={(e) => {
-                          const content = e.target.value;
-                          setUsername(content);
-                          setError("");
-                        }}
+                        {...register("username")}
                         placeholder={t("login.username_plch")}
                         className="w-full bg-transparent outline-none"
                       />
                     </div>
+                    {errors.username && (
+                      <div className="text-red-500 font-bold">
+                        {t(errors.username.message as "login.empty_username")}
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-col gap-2">
                     <label htmlFor="password">{t("login.password")}</label>
@@ -99,14 +112,7 @@ function Login() {
                       <input
                         type={seePass ? "text" : "password"}
                         id="password"
-                        name="password"
-                        value={password}
-                        onChange={(e) => {
-                          const content = e.target.value;
-                          setPassword(content);
-                          setSeePass(false);
-                          setError("");
-                        }}
+                        {...register("password")}
                         placeholder={t("login.password_plch")}
                         className="w-full bg-transparent outline-none"
                       />
@@ -119,11 +125,21 @@ function Login() {
                         className={`${seePass ? "text-gray-600" : "text-gray-400"}`}
                       />
                     </div>
+                    {errors.password && (
+                      <div className="text-red-500 font-bold">
+                        {t(errors.password.message as "login.empty_password")}
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="w-full bg-red-100 ">
-                  <SubmitButton content={t("login.submit")} />
-                </div>
+                <SubmitButton
+                  disabled={loginMutation.isPending}
+                  content={
+                    loginMutation.isPending
+                      ? t("login.loading")
+                      : t("login.submit")
+                  }
+                />
               </form>
               <a
                 href="https://dummyjson.com/users"

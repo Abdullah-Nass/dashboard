@@ -1,55 +1,58 @@
 import { useTranslation } from "react-i18next";
 import { AuthContext } from "../context/AuthContext";
 import { useContext, useEffect, useState } from "react";
-import Loading from "../components/Loading";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import SubmitButton from "../components/SubmitButton";
 import addPostApi from "../api/addPost";
+import z from "zod";
+import { useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import toast from "react-hot-toast";
+const AddPostScheme = z.object({
+  title: z.string().min(1, "add_post:empty_title"),
+  body: z.string().min(1, "add_post:empty_content"),
+});
+
+type AddPostData = z.infer<typeof AddPostScheme>;
 
 function AddPost() {
-  const { t } = useTranslation(["profile", "add_post"]);
+  const { t } = useTranslation(["profile", "add_post", "auth"]);
   const context = useContext(AuthContext);
   if (!context) throw new Error("Cannot use AuthContext");
   const { user } = context;
-  const [error, setError] = useState<string>("");
-  const [title, setTitle] = useState<string>("");
-  const [body, setBody] = useState<string>("");
-  const [feedback, setFeedback] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
-
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+
+  const {
+    register,
+    handleSubmit,
+    setError,
+    reset,
+    formState: { errors },
+  } = useForm<AddPostData>({ resolver: zodResolver(AddPostScheme) });
   useEffect(() => {
     document.title = t("profile:posts.add");
-  });
+  }, [t]);
   const onToggle = () => {
     setSidebarOpen((prev) => !prev);
   };
-  const handleAddPost: React.SubmitEventHandler<HTMLFormElement> = async (
-    e,
-  ) => {
-    e.preventDefault();
-    setLoading(true);
-    if (!title.trim() || !body.trim()) {
-      setError(t("add_post:empty_fields"));
-      setLoading(false);
 
-      return;
-    }
-    if (!user) return;
-
-    try {
-      await addPostApi(user, title, body);
-      setFeedback(t("add_post:feedback"));
-      setTitle("");
-      setBody("");
-    } catch {
-      setError(t("add_post:post_error"));
-    } finally {
-      setLoading(false);
-    }
+  const addPostMutation = useMutation({
+    mutationFn: async (data: AddPostData) => {
+      await addPostApi(user, data.title.trim(), data.body.trim());
+    },
+    onSuccess: () => {
+      reset();
+      toast.success(t("add_post:feedback"));
+    },
+    onError: () => {
+      setError("root", { message: "add_post:post_error" });
+    },
+  });
+  const onSubmit = (data: AddPostData) => {
+    addPostMutation.mutate(data);
   };
-  if (loading) return <Loading />;
   return (
     <>
       <div className="min-h-screen">
@@ -65,56 +68,55 @@ function AddPost() {
                   {t("posts.add")}
                 </h1>
               </header>
-              {error && (
+              {errors.root && (
                 <div className="rounded-lg bg-red-50 px-4 py-3 text-center font-medium text-red-600">
-                  {error}
+                  {t(errors.root.message as "add_post:post_error")}
                 </div>
               )}
-              {feedback && (
-                <div className="rounded-lg bg-green-50 px-4 py-3 text-center font-medium text-green-600">
-                  {feedback}
-                </div>
-              )}
+
               <form
-                onSubmit={handleAddPost}
+                onSubmit={handleSubmit(onSubmit)}
                 className="flex flex-col gap-3 max-w-200 px-4 py-2 border border-gray-300 shadow rounded-lg bg-white"
               >
                 <div className="flex flex-col gap-3">
                   <label htmlFor="title">{t("add_post:title_label")}</label>
                   <input
                     type="text"
-                    name="title"
                     id="title"
-                    value={title}
-                    onChange={(e) => {
-                      const content = e.target.value;
-                      setTitle(content);
-                      setError("");
-                      setFeedback("");
-                    }}
+                    {...register("title")}
                     placeholder={t("add_post:title_plch")}
                     className="w-full border border-gray-200 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-yellow-400"
                   />
+                  {errors.title && (
+                    <div className="rounded-lg bg-red-50 px-4 py-3 font-medium text-red-600">
+                      {t(errors.title.message as "add_post:empty_title")}
+                    </div>
+                  )}
                 </div>
                 <div className="flex flex-col gap-3">
                   <label htmlFor="body">{t("add_post:body_label")}</label>
 
                   <textarea
-                    name="body"
                     id="body"
-                    value={body}
-                    onChange={(e) => {
-                      const content = e.target.value;
-                      setBody(content);
-                      setError("");
-                      setFeedback("");
-                    }}
+                    {...register("body")}
                     placeholder={t("add_post:body_plch")}
                     rows={8}
                     className="w-full resize-y border border-gray-200 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-yellow-400"
                   />
+                  {errors.body && (
+                    <div className="rounded-lg bg-red-50 px-4 py-3 font-medium text-red-600">
+                      {t(errors.body.message as "add_post:empty_content")}
+                    </div>
+                  )}
                 </div>
-                <SubmitButton content={t("add_post:post")} />
+                <SubmitButton
+                  disabled={addPostMutation.isPending}
+                  content={
+                    addPostMutation.isPending
+                      ? t("auth:login.loading")
+                      : t("add_post:post")
+                  }
+                />
               </form>
             </div>
           </main>

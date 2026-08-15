@@ -1,53 +1,58 @@
 import { useTranslation } from "react-i18next";
 import { AuthContext } from "../context/AuthContext";
 import { useContext, useEffect, useState } from "react";
-import Loading from "../components/Loading";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import SubmitButton from "../components/SubmitButton";
 import addTodoApi from "../api/addTodo";
+import z from "zod";
+import { useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import toast from "react-hot-toast";
 
-function AddtTodo() {
-  const { t } = useTranslation(["profile", "add_todo"]);
+const AddTodoScheme = z.object({
+  todo: z.string().min(1, "add_todo:empty_fields"),
+});
+type AddTodoData = z.infer<typeof AddTodoScheme>;
+
+function AddTodo() {
+  const { t } = useTranslation(["profile", "add_todo", "auth"]);
   const context = useContext(AuthContext);
   if (!context) throw new Error("Cannot use AuthContext");
   const { user } = context;
-  const [error, setError] = useState<string>("");
-  const [todo, setTodo] = useState<string>("");
-  const [feedback, setFeedback] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
 
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+  const {
+    register,
+    handleSubmit,
+    setError,
+    reset,
+    formState: { errors },
+  } = useForm<AddTodoData>({ resolver: zodResolver(AddTodoScheme) });
+  const addTodoMutation = useMutation({
+    mutationFn: async (data: AddTodoData) => {
+      await addTodoApi(user, data.todo);
+    },
+    onSuccess: () => {
+      toast.success(t("add_todo:feedback"));
+      reset();
+    },
+    onError: () => {
+      setError("root", {
+        message: t("add_todo:todo_error"),
+      });
+    },
+  });
   useEffect(() => {
     document.title = t("profile:todos.add");
-  });
+  }, [t]);
   const onToggle = () => {
     setSidebarOpen((prev) => !prev);
   };
-  const handleAddPost: React.SubmitEventHandler<HTMLFormElement> = async (
-    e,
-  ) => {
-    e.preventDefault();
-    setLoading(true);
-    if (!todo.trim()) {
-      setError(t("add_todo:empty_fields"));
-      setLoading(false);
-
-      return;
-    }
-    if (!user) return;
-
-    try {
-      await addTodoApi(user, todo);
-      setFeedback(t("add_todo:feedback"));
-      setTodo("");
-    } catch {
-      setError(t("add_todo:todo_error"));
-    } finally {
-      setLoading(false);
-    }
+  const onSubmit = (data: AddTodoData) => {
+    addTodoMutation.mutate(data);
   };
-  if (loading) return <Loading />;
   return (
     <>
       <div className="min-h-screen">
@@ -63,39 +68,40 @@ function AddtTodo() {
                   {t("todos.add")}
                 </h1>
               </header>
-              {error && (
+              {errors.root && (
                 <div className="rounded-lg bg-red-50 px-4 py-3 text-center font-medium text-red-600">
-                  {error}
+                  {t(errors.root.message as "add_todo:todo_error")}
                 </div>
               )}
-              {feedback && (
-                <div className="rounded-lg bg-green-50 px-4 py-3 text-center font-medium text-green-600">
-                  {feedback}
-                </div>
-              )}
+
               <form
-                onSubmit={handleAddPost}
+                onSubmit={handleSubmit(onSubmit)}
                 className="flex flex-col gap-3 max-w-200 px-4 py-2 border border-gray-300 shadow rounded-lg bg-white"
               >
                 <div className="flex flex-col gap-3">
                   <label htmlFor="title">{t("add_todo:todo_label")}</label>
                   <input
                     type="text"
-                    name="title"
                     id="title"
-                    value={todo}
-                    onChange={(e) => {
-                      const content = e.target.value;
-                      setTodo(content);
-                      setError("");
-                      setFeedback("");
-                    }}
+                    {...register("todo")}
                     placeholder={t("add_todo:todo_plch")}
                     className="w-full border border-gray-200 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-yellow-400"
                   />
+                  {errors.todo && (
+                    <div className="rounded-lg bg-red-50 px-4 py-3 text-center font-medium text-red-600">
+                      {t(errors.todo.message as "add_todo:empty_fields")}
+                    </div>
+                  )}
                 </div>
 
-                <SubmitButton content={t("add_todo:add")} />
+                <SubmitButton
+                  disabled={addTodoMutation.isPending}
+                  content={
+                    addTodoMutation.isPending
+                      ? t("auth:login.loading")
+                      : t("add_todo:add")
+                  }
+                />
               </form>
             </div>
           </main>
@@ -104,4 +110,4 @@ function AddtTodo() {
     </>
   );
 }
-export default AddtTodo;
+export default AddTodo;

@@ -4,7 +4,7 @@ import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import AuthContextProvider from "./context/AuthContextProvider";
 import AddPost from "./pages/AddPost";
-import AddtTodo from "./pages/AddTodo";
+import AddTodo from "./pages/AddTodo";
 function App() {
   return (
     <AuthContextProvider>
@@ -31,7 +31,7 @@ function App() {
             path="/add_todo"
             element={
               <ProtectedRoute>
-                <AddtTodo />
+                <AddTodo />
               </ProtectedRoute>
             }
           ></Route>

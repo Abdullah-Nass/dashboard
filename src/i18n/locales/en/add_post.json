@@ -4,7 +4,8 @@
   "body_label": "Body",
   "body_plch": "Enter body",
   "loading": "Loading...",
-  "empty_fields": "You should have both title and content",
+  "empty_title": "You should add a title",
+  "empty_content": "You should have a content",
   "post_error": "Error submitting your post",
   "post": "Post",
   "feedback": "Post submitted successfully!"
