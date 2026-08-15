@@ -1,11 +1,12 @@
 {
   "title_label": "Título",
-  "title_plch": "Introducir título",
+  "title_plch": "Introduce el título",
   "body_label": "Cuerpo",
-  "body_plch": "Introducir cuerpo",
+  "body_plch": "Introduce el cuerpo",
   "loading": "Cargando...",
-  "empty_fields": "Debe tener tanto título como contenido",
-  "post_error": "Error al enviar tu mensaje",
+  "empty_title": "Debes añadir un título",
+  "empty_content": "Debes tener contenido",
+  "post_error": "Error al enviar tu publicación",
   "post": "Publicar",
   "feedback": "¡Publicación enviada con éxito!"
 }
