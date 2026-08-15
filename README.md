@@ -11,11 +11,12 @@ A fully functional API-driven, multilingual task management dashboard built with
 - **Authentication** — JWT-based login with protected routes and automatic logout on token expiration
 - **Posts** — View, create, and manage posts with a clean card interface
 - **Todos** — View todos with toggle-complete functionality and optimistic UI updates
+- **Form Validation** — All forms use React Hook Form with Zod schema validation and per-field inline error messages
 - **Multilingual UI** — Full i18n support for English, Arabic, and Spanish
 - **RTL/LTR Support** — Automatic document direction and language switching for Arabic
 - **Responsive Design** — Mobile-first layout with Tailwind CSS, tested across devices
 - **Persistent Auth** — Token and user data stored in localStorage
-- **Loading & Error States** — Consistent handling throughout the application
+- **Loading & Error States** — Consistent handling throughout the application via TanStack Query mutations
 - **Remote-Friendly** — Clean, readable code for team collaboration
 
 ---
@@ -28,6 +29,9 @@ A fully functional API-driven, multilingual task management dashboard built with
 | TypeScript      | Type Safety                 |
 | Tailwind CSS v4 | Styling                     |
 | React Router v7 | Client-side Routing         |
+| TanStack Query  | Async state & mutations     |
+| React Hook Form | Form state management       |
+| Zod             | Schema validation           |
 | react-i18next   | Internationalization (i18n) |
 | Axios           | HTTP Requests               |
 | DummyJSON API   | Mock Backend                |
@@ -109,7 +113,7 @@ Translations are organized by namespace in `src/i18n/locales/`:
 Each locale folder (`en/`, `ar/`, `es/`) contains these files.
 
 > [!NOTE]
-> ** Translation Workflow:** Translations were managed using the Crowdin GitHub integration combined with auto-translation. Note that the Arabic localization has been partially revised for context and accuracy, while Spanish relys primarily on the automated translation output.
+> **Translation Workflow:** Translations were managed using the Crowdin GitHub integration combined with auto-translation. Note that the Arabic localization has been partially revised for context and accuracy, while Spanish relies primarily on the automated translation output.
 
 ### RTL Support
 
@@ -127,9 +131,20 @@ When Arabic is selected, the app automatically:
 
 Auth state (user, token, login/logout) is managed globally via `AuthContext` and persisted in localStorage. Protected routes redirect unauthenticated users to `/login`.
 
+### Form Architecture
+
+All forms (Login, Add Post, Add Todo) use **React Hook Form** with **Zod** schemas for validation:
+
+- Field-level errors display inline below each input
+- Server errors (API failures) are set via `setError("root")` and displayed at the top of the form
+- Async submissions use **TanStack Query `useMutation`** — `isPending` drives button disabled state and loading label, eliminating manual `loading` state
+- On successful mutation, forms reset automatically via `reset()`
+
+This reduced per-form boilerplate from ~5 `useState` variables to 1 (`seePass` for the password toggle).
+
 ### Optimistic UI Updates
 
-Todos use optimistic updates — the UI updates immediately when you toggle a checkbox, then rolls back if the server request fails. This provides instant feedback without waiting for the API.
+Todos use optimistic updates — the UI updates immediately when you toggle a checkbox, then rolls back if the server request fails.
 
 ### Component Composition
 
@@ -144,11 +159,13 @@ Large pages are split into reusable components:
 
 ## 📝 Key Design Decisions
 
-1. **React Context over Redux** — Simpler state management for auth and login; Redux would be overkill for this scope
-2. **Namespace-based i18n** — Organized translation files by feature, easier to maintain as the app grows
-3. **Tailwind CSS** — Utility-first approach keeps component files clean and styling explicit
-4. **Axios** — Simpler API calls than fetch with automatic JSON serialization
-5. **localStorage for tokens** — Simple and effective for a client-side app; production would use secure HTTP-only cookies
+1. **React Context over Redux** — Simpler state management for auth; Redux would be overkill for this scope
+2. **React Hook Form + Zod** — Keeps form logic declarative and type-safe; validation rules live in the schema, not scattered across handlers
+3. **TanStack Query for mutations** — Consistent async state (pending, error, success) without manual state juggling
+4. **Namespace-based i18n** — Organized translation files by feature, easier to maintain as the app grows
+5. **Tailwind CSS** — Utility-first approach keeps component files clean and styling explicit
+6. **Axios** — Simpler API calls than fetch with automatic JSON serialization
+7. **localStorage for tokens** — Simple and effective for a client-side app; production would use secure HTTP-only cookies
 
 ---
 
