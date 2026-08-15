@@ -40,7 +40,7 @@ function AddTodo() {
     },
     onError: () => {
       setError("root", {
-        message: t("add_todo:todo_error"),
+        message: "add_todo:todo_error",
       });
     },
   });
